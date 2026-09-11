@@ -25,26 +25,58 @@ public sealed class SmsProxyHubService(
         long monitorId,
         CancellationToken cancellationToken = default)
     {
-        if (!IsConfigured)
-        {
-            throw new InvalidOperationException("SMS Proxy Hub is not configured. Set SMS_PROXY_URL and SMS_PROXY_TOKEN.");
-        }
-
         var delta = citations - previousCitations;
         var safeName = scholarName.Length > 70 ? $"{scholarName[..67]}..." : scholarName;
         var message = $"Google Scholar update: {safeName} now has {citations} citations ({delta:+#;-#;0}).";
-        var normalizedPhoneNumber = phoneNumberService.NormalizeToE164(phoneNumber);
-        var request = new SmsSendRequest(
-            Guid.TryParse(ConnectionId, out var connectionId) ? connectionId : null,
-            [normalizedPhoneNumber],
+        await SendAsync(
+            phoneNumber,
             message,
-            JsonConvert.SerializeObject(new
+            new
             {
                 source = "google-scholar-notify",
                 monitorId,
                 previousCitations,
                 citations
-            }));
+            },
+            cancellationToken);
+    }
+
+    public async Task SendTestAsync(
+        string phoneNumber,
+        string scholarName,
+        long monitorId,
+        CancellationToken cancellationToken = default)
+    {
+        var safeName = scholarName.Length > 90 ? $"{scholarName[..87]}..." : scholarName;
+        await SendAsync(
+            phoneNumber,
+            $"Citewatch test: SMS notifications for {safeName} are working.",
+            new
+            {
+                source = "google-scholar-notify",
+                monitorId,
+                test = true
+            },
+            cancellationToken);
+    }
+
+    private async Task SendAsync(
+        string phoneNumber,
+        string message,
+        object payload,
+        CancellationToken cancellationToken)
+    {
+        if (!IsConfigured)
+        {
+            throw new InvalidOperationException("SMS Proxy Hub is not configured. Set SMS_PROXY_URL and SMS_PROXY_TOKEN.");
+        }
+
+        var normalizedPhoneNumber = phoneNumberService.NormalizeToE164(phoneNumber);
+        var request = new SmsSendRequest(
+            Guid.TryParse(ConnectionId, out var connectionId) ? connectionId : null,
+            [normalizedPhoneNumber],
+            message,
+            JsonConvert.SerializeObject(payload));
 
         var httpClient = httpClientFactory.CreateClient("SmsProxyHub");
         httpClient.BaseAddress = new Uri(BaseUrl!.TrimEnd('/'));

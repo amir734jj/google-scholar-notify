@@ -97,6 +97,31 @@ public sealed class HomeController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SendTestSms(long id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var monitor = await monitors.Get(id) ?? throw new InvalidOperationException("Monitor not found.");
+            await smsService.SendTestAsync(monitor.PhoneNumber, monitor.ScholarName, monitor.Id, cancellationToken);
+            await activities.Save(new Activity
+            {
+                MonitorId = monitor.Id,
+                Kind = "notification",
+                Message = $"Test SMS sent to {monitor.PhoneNumber}.",
+                CreatedAt = DateTimeOffset.UtcNow
+            });
+            SetFlash("Test SMS sent successfully.", "success");
+        }
+        catch (Exception exception)
+        {
+            SetFlash(exception.Message, "error");
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdatePhone(long id, string phoneNumber)
     {
         try
