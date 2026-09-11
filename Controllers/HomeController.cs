@@ -98,6 +98,35 @@ public sealed class HomeController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdatePhone(long id, string phoneNumber)
+    {
+        try
+        {
+            var normalizedPhoneNumber = phoneNumberService.NormalizeToE164(phoneNumber);
+            if (await monitors.Update(id, entity => entity.PhoneNumber = normalizedPhoneNumber) is null)
+            {
+                throw new InvalidOperationException("Monitor not found.");
+            }
+
+            await activities.Save(new Activity
+            {
+                MonitorId = id,
+                Kind = "settings",
+                Message = $"SMS destination changed to {normalizedPhoneNumber}.",
+                CreatedAt = DateTimeOffset.UtcNow
+            });
+            SetFlash("SMS destination updated.", "success");
+        }
+        catch (Exception exception)
+        {
+            SetFlash(exception.Message, "error");
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Toggle(long id, bool enabled)
     {
         try
