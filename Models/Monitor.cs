@@ -8,7 +8,6 @@ public sealed class Monitor
     public string PhoneNumber { get; set; } = string.Empty;
     public int CurrentCitations { get; set; }
     public int NotifiedCitations { get; set; }
-    public int IntervalHours { get; set; }
     public int UtcOffsetHours { get; set; } = -6;
     public int NotificationStartHour { get; set; } = 9;
     public int NotificationEndHour { get; set; } = 17;

@@ -47,10 +47,7 @@
                 <p class="text-secondary">The current citation total becomes the baseline. Your first SMS is sent only after that number changes.</p>
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
                 <div class="mb-3"><label asp-for="Input.ScholarUrl" class="form-label"></label><input asp-for="Input.ScholarUrl" class="form-control" placeholder="https://scholar.google.com/citations?user=..." autocomplete="url" /><span asp-validation-for="Input.ScholarUrl" class="text-danger small"></span></div>
-                <div class="row g-3 mb-3">
-                    <div class="col-md-8"><label asp-for="Input.PhoneNumber" class="form-label">SMS destination</label><input asp-for="Input.PhoneNumber" class="form-control" placeholder="+14145551234" autocomplete="tel" /><span asp-validation-for="Input.PhoneNumber" class="text-danger small"></span></div>
-                    <div class="col-md-4"><label asp-for="Input.IntervalHours" class="form-label">Check every</label><select asp-for="Input.IntervalHours" class="form-select"><option value="6">6 hours</option><option value="12">12 hours</option><option value="24">24 hours</option><option value="72">3 days</option><option value="168">7 days</option></select></div>
-                </div>
+                <div class="mb-3"><label asp-for="Input.PhoneNumber" class="form-label">SMS destination</label><input asp-for="Input.PhoneNumber" class="form-control" placeholder="+14145551234" autocomplete="tel" /><span asp-validation-for="Input.PhoneNumber" class="text-danger small"></span></div>
                 <div class="row g-3 mb-4">
                     <div class="col-lg-6"><label asp-for="Input.UtcOffsetHours" class="form-label"></label><select asp-for="Input.UtcOffsetHours" class="form-select">@for (var offset = -12; offset <= 14; offset++) { <option value="@offset">UTC@(offset >= 0 ? $"+{offset:00}" : $"-{Math.Abs(offset):00}"):00</option> }</select><span asp-validation-for="Input.UtcOffsetHours" class="text-danger small"></span></div>
                     <div class="col-sm-6 col-lg-3"><label asp-for="Input.NotificationStartHour" class="form-label"></label><select asp-for="Input.NotificationStartHour" class="form-select">@for (var hour = 0; hour < 24; hour++) { <option value="@hour">@($"{hour:00}:00")</option> }</select></div>

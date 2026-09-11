@@ -41,22 +41,23 @@ public sealed class HomeController(
         {
             var snapshot = await scholarService.FetchProfileAsync(input.ScholarUrl, cancellationToken);
             var now = DateTimeOffset.UtcNow;
-            var monitor = await monitors.Save(new Monitor
+            var monitor = new Monitor
             {
                 ScholarUrl = snapshot.CanonicalUrl,
                 ScholarName = snapshot.Name,
                 PhoneNumber = input.PhoneNumber,
                 CurrentCitations = snapshot.Citations,
                 NotifiedCitations = snapshot.Citations,
-                IntervalHours = input.IntervalHours,
                 UtcOffsetHours = input.UtcOffsetHours,
                 NotificationStartHour = input.NotificationStartHour,
                 NotificationEndHour = input.NotificationEndHour,
                 Enabled = true,
                 LastCheckedAt = now,
-                NextCheckAt = now.AddHours(input.IntervalHours),
+                NextCheckAt = now,
                 CreatedAt = now
-            });
+            };
+            monitor.NextCheckAt = NotificationWindow.GetNextCheck(monitor, now);
+            monitor = await monitors.Save(monitor);
             await activities.Save(new Activity
             {
                 MonitorId = monitor.Id,

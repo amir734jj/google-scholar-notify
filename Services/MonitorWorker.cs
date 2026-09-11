@@ -6,18 +6,19 @@ namespace ScholarNotify.Services;
 public sealed class MonitorWorker(
     IEfRepositoryCreator<Monitor> monitorCreator,
     MonitorService monitorService,
-    IConfiguration configuration,
     ILogger<MonitorWorker> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var minutes = Math.Max(1, configuration.GetValue("MonitorWorker:ScanIntervalMinutes", 1));
-        using var timer = new PeriodicTimer(TimeSpan.FromMinutes(minutes));
+        using var timer = new PeriodicTimer(NotificationWindow.CheckInterval);
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {
             await using var monitors = await monitorCreator.CreateAsync();
+            var now = DateTimeOffset.UtcNow;
             var due = (await monitors.NoTracking().GetAll())
-                .Where(item => item.Enabled && item.NextCheckAt <= DateTimeOffset.UtcNow)
+                .Where(item => item.Enabled
+                    && item.NextCheckAt <= now
+                    && NotificationWindow.IsOpen(item, now))
                 .OrderBy(item => item.NextCheckAt)
                 .Take(10);
             foreach (var id in due.Select(item => item.Id))

@@ -3,6 +3,7 @@ using FluentMigrator.Runner;
 using Microsoft.EntityFrameworkCore;
 using ScholarNotify.Data;
 using ScholarNotify.Data.Migrations;
+using ScholarNotify.Infrastructure;
 using ScholarNotify.Interfaces;
 using ScholarNotify.Services;
 using Serilog;
@@ -22,9 +23,9 @@ if (int.TryParse(builder.Configuration["PORT"], out var port))
 var useSqlite = builder.Environment.IsDevelopment();
 var connectionString = useSqlite
     ? CreateSqliteConnectionString(builder.Configuration)
-    : builder.Configuration.GetConnectionString("Postgres")
-        ?? throw new InvalidOperationException(
-            "ConnectionStrings:Postgres is required outside the Development environment.");
+    : DatabaseUrlConverter.ToConnectionString(
+        builder.Configuration["DATABASE_URL"]
+        ?? throw new InvalidOperationException("DATABASE_URL is required outside the Development environment."));
 
 builder.Services.AddControllersWithViews().AddNewtonsoftJson();
 builder.Services.AddDbContextFactory<ScholarDbContext>(options =>

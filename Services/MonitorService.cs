@@ -25,13 +25,20 @@ public sealed class MonitorService(
 
         try
         {
+            var startedAt = DateTimeOffset.UtcNow;
+            if (!NotificationWindow.IsOpen(monitor, startedAt))
+            {
+                var nextOpening = NotificationWindow.GetNextOpening(monitor, startedAt);
+                await monitors.Update(id, entity => entity.NextCheckAt = nextOpening);
+                await LogActivityAsync(id, "deferred", $"Check deferred until {nextOpening:O}.");
+                return (await monitors.Get(id))!;
+            }
+
             var snapshot = await scholarService.FetchProfileAsync(monitor.ScholarUrl, cancellationToken);
             var checkedAt = DateTimeOffset.UtcNow;
             var changed = snapshot.Citations != monitor.NotifiedCitations;
             var canNotify = !changed || NotificationWindow.IsOpen(monitor, checkedAt);
-            var nextCheckAt = changed && !canNotify
-                ? NotificationWindow.GetNextOpening(monitor, checkedAt)
-                : checkedAt.AddHours(monitor.IntervalHours);
+            var nextCheckAt = NotificationWindow.GetNextCheck(monitor, checkedAt);
             await monitors.Update(id, entity =>
             {
                 entity.ScholarName = snapshot.Name;
@@ -66,7 +73,7 @@ public sealed class MonitorService(
             {
                 entity.LastError = exception.Message;
                 entity.LastCheckedAt = failedAt;
-                entity.NextCheckAt = failedAt.AddHours(monitor.IntervalHours);
+                entity.NextCheckAt = NotificationWindow.GetNextCheck(monitor, failedAt);
             });
             await LogActivityAsync(id, "error", exception.Message);
             throw;

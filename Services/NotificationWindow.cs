@@ -4,6 +4,8 @@ namespace ScholarNotify.Services;
 
 public static class NotificationWindow
 {
+    public static readonly TimeSpan CheckInterval = TimeSpan.FromMinutes(15);
+
     public static bool IsOpen(Monitor monitor, DateTimeOffset utcNow)
     {
         Validate(monitor);
@@ -24,6 +26,23 @@ public static class NotificationWindow
         }
 
         return new DateTimeOffset(opening, offset).ToUniversalTime();
+    }
+
+    public static DateTimeOffset GetNextCheck(Monitor monitor, DateTimeOffset utcNow)
+    {
+        Validate(monitor);
+        if (!IsOpen(monitor, utcNow))
+        {
+            return GetNextOpening(monitor, utcNow);
+        }
+
+        var offset = TimeSpan.FromHours(monitor.UtcOffsetHours);
+        var localNow = utcNow.ToOffset(offset);
+        var candidate = localNow.Add(CheckInterval);
+        var closing = localNow.Date.AddHours(monitor.NotificationEndHour);
+        return candidate.DateTime < closing
+            ? candidate.ToUniversalTime()
+            : GetNextOpening(monitor, utcNow);
     }
 
     private static void Validate(Monitor monitor)

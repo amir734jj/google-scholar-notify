@@ -10,9 +10,6 @@ public sealed class MonitorInput : IValidatableObject
     [Required]
     public string PhoneNumber { get; set; } = string.Empty;
 
-    [Range(1, 168)]
-    public int IntervalHours { get; set; } = 24;
-
     [Range(-12, 14), Display(Name = "UTC offset")]
     public int UtcOffsetHours { get; set; } = -6;
 
