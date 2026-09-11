@@ -18,11 +18,6 @@
     <nav class="navbar navbar-expand-md bg-dark navbar-dark">
         <div class="container-fluid px-4">
             <a class="navbar-brand fw-semibold" asp-controller="Home" asp-action="Index">Citewatch</a>
-            <div class="navbar-nav flex-row gap-3">
-                <a class="nav-link" href="#overview">Overview</a>
-                <a class="nav-link" href="#profiles">Profiles</a>
-                <a class="nav-link" href="#activity">Activity</a>
-            </div>
         </div>
     </nav>
 
@@ -58,15 +53,15 @@
         </details>
 
         <section class="row g-4">
-            <section class="col-xl-8" id="profiles">
+            <section class="col-12" id="profiles">
                 <div class="card">
                 <div class="card-header py-3"><h2 class="h5 mb-1">Monitored profiles</h2><p class="text-secondary small mb-0">Current citation totals and check schedule</p></div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light"><tr><th>Researcher</th><th>Status</th><th>Citations</th><th>Next check</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
                         <tbody>
-                        @if (Model.Monitors.Count == 0)
                         {
+                        </html>
                             <tr><td colspan="5" class="text-center text-secondary py-5">No profiles are being monitored.</td></tr>
                         }
                         else
@@ -94,7 +89,7 @@
                 </div>
             </section>
 
-            <aside class="col-xl-4" id="activity">
+            <aside class="col-12" id="activity">
                 <div class="card">
                 <div class="card-header py-3"><h2 class="h5 mb-1">Activity</h2><p class="text-secondary small mb-0">Checks and SMS delivery</p></div>
                 <div class="list-group list-group-flush">
@@ -116,7 +111,7 @@
                 </div>
             </aside>
         </section>
-        <footer class="d-flex justify-content-between text-secondary small py-4"><span>Checks are scheduled in UTC</span><span>Powered by SMS Proxy Hub</span></footer>
+        <footer class="text-secondary small py-4">Checks are scheduled in UTC</footer>
     </main>
 </body>
 </html>
