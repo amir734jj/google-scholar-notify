@@ -4,7 +4,7 @@ namespace ScholarNotify.Services;
 
 public static class NotificationWindow
 {
-    public static readonly TimeSpan CheckInterval = TimeSpan.FromMinutes(15);
+    public static readonly TimeSpan CheckInterval = TimeSpan.FromHours(1);
 
     public static bool IsOpen(Monitor monitor, DateTimeOffset utcNow)
     {

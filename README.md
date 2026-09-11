@@ -24,7 +24,7 @@ Register `https://your-citewatch-host/api/sms-callback` as a webhook in SMS Prox
 ## How it works
 
 - Adding a profile stores its current citation count as the baseline. It does not send an initial SMS.
-- Profiles are checked every 15 minutes during their configured local notification window.
+- Profiles are checked every hour during their configured local notification window.
 - An SMS is sent only when the citation count changes.
 - Development data is stored in `data/scholar-notify.db`. Set `DATA_DIR` to change the directory.
 

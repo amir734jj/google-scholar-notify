@@ -9,13 +9,6 @@ public sealed class DashboardViewModel
     public bool SmsConfigured { get; init; }
     public MonitorInput Input { get; init; } = new();
 
-    public static string Initials(string name) => string.Concat(name
-        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-        .Where(part => !part.TrimEnd('.').Equals("dr", StringComparison.OrdinalIgnoreCase)
-            && !part.TrimEnd('.').Equals("prof", StringComparison.OrdinalIgnoreCase))
-        .Take(2)
-        .Select(part => char.ToUpperInvariant(part[0])));
-
     public static string RelativeTime(DateTimeOffset value)
     {
         var difference = value - DateTimeOffset.UtcNow;
