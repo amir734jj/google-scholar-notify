@@ -1,0 +1,6 @@
+[Dd]ata/*.db
+[Dd]ata/*.db-*
+.env
+.git
+bin
+obj

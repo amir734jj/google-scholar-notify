@@ -1,0 +1,124 @@
+@using ScholarNotify.ViewModels
+@model ScholarNotify.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Citation monitor";
+    var flashMessage = TempData["FlashMessage"] as string;
+    var flashKind = TempData["FlashKind"] as string;
+}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Monitor Google Scholar citations and send SMS alerts when they change." />
+    <title>@ViewData["Title"] - Citewatch</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous" />
+</head>
+<body class="bg-body-tertiary">
+    <nav class="navbar navbar-expand-md bg-dark navbar-dark">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-semibold" asp-controller="Home" asp-action="Index">Citewatch</a>
+            <div class="navbar-nav flex-row gap-3">
+                <a class="nav-link" href="#overview">Overview</a>
+                <a class="nav-link" href="#profiles">Profiles</a>
+                <a class="nav-link" href="#activity">Activity</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-fluid px-3 px-lg-5 py-4" id="overview">
+        <header class="mb-4">
+            <p class="text-uppercase text-secondary small mb-1">Workspace / Overview</p>
+            <h1 class="h2 mb-0">Citation monitor</h1>
+        </header>
+
+        @if (!Model.SmsConfigured)
+        {
+            <div class="alert alert-warning" role="alert"><strong>SMS delivery is offline.</strong> Add your SMS Proxy Hub values to <code>appsettings.json</code> or environment variables.</div>
+        }
+        @if (!string.IsNullOrWhiteSpace(flashMessage))
+        {
+            <div class="alert @(flashKind == "error" ? "alert-danger" : "alert-success")" role="alert">@flashMessage</div>
+        }
+
+        <details class="card mb-4" id="add-profile" @(!ViewData.ModelState.IsValid ? "open" : null)>
+            <summary class="card-header p-3"><strong>Add a Scholar profile</strong><span class="text-secondary ms-2">Set a citation baseline and SMS destination</span></summary>
+            <form method="post" asp-controller="Home" asp-action="Add" class="card-body">
+                <p class="text-secondary">The current citation total becomes the baseline. Your first SMS is sent only after that number changes.</p>
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <div class="mb-3"><label asp-for="Input.ScholarUrl" class="form-label"></label><input asp-for="Input.ScholarUrl" class="form-control" placeholder="https://scholar.google.com/citations?user=..." autocomplete="url" /><span asp-validation-for="Input.ScholarUrl" class="text-danger small"></span></div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-8"><label asp-for="Input.PhoneNumber" class="form-label">SMS destination</label><input asp-for="Input.PhoneNumber" class="form-control" placeholder="+14145551234" autocomplete="tel" /><span asp-validation-for="Input.PhoneNumber" class="text-danger small"></span></div>
+                    <div class="col-md-4"><label asp-for="Input.IntervalHours" class="form-label">Check every</label><select asp-for="Input.IntervalHours" class="form-select"><option value="6">6 hours</option><option value="12">12 hours</option><option value="24">24 hours</option><option value="72">3 days</option><option value="168">7 days</option></select></div>
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-lg-6"><label asp-for="Input.UtcOffsetHours" class="form-label"></label><select asp-for="Input.UtcOffsetHours" class="form-select">@for (var offset = -12; offset <= 14; offset++) { <option value="@offset">UTC@(offset >= 0 ? $"+{offset:00}" : $"-{Math.Abs(offset):00}"):00</option> }</select><span asp-validation-for="Input.UtcOffsetHours" class="text-danger small"></span></div>
+                    <div class="col-sm-6 col-lg-3"><label asp-for="Input.NotificationStartHour" class="form-label"></label><select asp-for="Input.NotificationStartHour" class="form-select">@for (var hour = 0; hour < 24; hour++) { <option value="@hour">@($"{hour:00}:00")</option> }</select></div>
+                    <div class="col-sm-6 col-lg-3"><label asp-for="Input.NotificationEndHour" class="form-label"></label><select asp-for="Input.NotificationEndHour" class="form-select">@for (var hour = 1; hour <= 24; hour++) { <option value="@hour">@($"{hour:00}:00")</option> }</select><span asp-validation-for="Input.NotificationEndHour" class="text-danger small"></span></div>
+                </div>
+                <div class="text-end"><button class="btn btn-primary" type="submit">Start monitoring</button></div>
+            </form>
+        </details>
+
+        <section class="row g-4">
+            <section class="col-xl-8" id="profiles">
+                <div class="card">
+                <div class="card-header py-3"><h2 class="h5 mb-1">Monitored profiles</h2><p class="text-secondary small mb-0">Current citation totals and check schedule</p></div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>Researcher</th><th>Status</th><th>Citations</th><th>Next check</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+                        <tbody>
+                        @if (Model.Monitors.Count == 0)
+                        {
+                            <tr><td colspan="5" class="text-center text-secondary py-5">No profiles are being monitored.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var item in Model.Monitors)
+                            {
+                                <tr>
+                                    <td><div class="d-flex align-items-center gap-2"><span class="badge rounded-pill text-bg-primary">@DashboardViewModel.Initials(item.ScholarName)</span><div><strong class="d-block">@item.ScholarName</strong><small class="text-secondary d-block">@item.PhoneNumber</small><small class="text-secondary">@($"{item.NotificationStartHour:00}:00-{item.NotificationEndHour:00}:00 UTC{item.UtcOffsetHours:+00;-00;+00}")</small></div></div></td>
+                                    <td><span class="badge @(item.Enabled ? "text-bg-success" : "text-bg-secondary")">@(item.Enabled ? "Active" : "Paused")</span></td>
+                                    <td class="fw-semibold">@item.CurrentCitations.ToString("N0")</td>
+                                    <td class="text-secondary">@(item.Enabled ? DashboardViewModel.RelativeTime(item.NextCheckAt) : "Paused")</td>
+                                    <td><div class="d-flex flex-wrap justify-content-end gap-1">
+                                        <form method="post" asp-controller="Home" asp-action="Check"><input type="hidden" name="id" value="@item.Id" /><button class="btn btn-sm btn-outline-primary" title="Check @item.ScholarName now">Check</button></form>
+                                        <form method="post" asp-controller="Home" asp-action="Toggle"><input type="hidden" name="id" value="@item.Id" /><input type="hidden" name="enabled" value="@(!item.Enabled)" /><button class="btn btn-sm btn-outline-secondary" title="@(item.Enabled ? "Pause" : "Resume") monitor">@(item.Enabled ? "Pause" : "Resume")</button></form>
+                                        <details><summary class="btn btn-sm btn-outline-danger">Delete</summary><div class="border rounded p-2 mt-2"><small class="d-block mb-2">Delete this monitor?</small><form method="post" asp-controller="Home" asp-action="Delete"><input type="hidden" name="id" value="@item.Id" /><button class="btn btn-sm btn-danger w-100">Confirm</button></form></div></details>
+                                    </div></td>
+                                </tr>
+                                @if (!string.IsNullOrWhiteSpace(item.LastError)) { <tr class="table-danger"><td colspan="5" class="small">@item.LastError</td></tr> }
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+            </section>
+
+            <aside class="col-xl-4" id="activity">
+                <div class="card">
+                <div class="card-header py-3"><h2 class="h5 mb-1">Activity</h2><p class="text-secondary small mb-0">Checks and SMS delivery</p></div>
+                <div class="list-group list-group-flush">
+                @if (Model.Activities.Count == 0)
+                {
+                    <div class="text-center text-secondary py-5 px-3">Completed checks will appear here.</div>
+                }
+                else
+                {
+                    @foreach (var item in Model.Activities.Take(8))
+                    {
+                        var monitor = Model.Monitors.FirstOrDefault(candidate => candidate.Id == item.MonitorId);
+                        var marker = item.Kind == "error" ? "ERR" : item.Kind == "notification" ? "SMS" : "OK";
+                        var markerClass = item.Kind == "error" ? "error" : item.Kind == "notification" ? "sms" : string.Empty;
+                        <article class="list-group-item d-flex gap-3 py-3"><span class="badge @(markerClass == "error" ? "text-bg-danger" : markerClass == "sms" ? "text-bg-primary" : "text-bg-success") align-self-start">@marker</span><div><p class="mb-1">@item.Message</p><small class="text-secondary">@(monitor?.ScholarName ?? $"Profile {item.MonitorId}") / @DashboardViewModel.RelativeTime(item.CreatedAt)</small></div></article>
+                    }
+                }
+                </div>
+                </div>
+            </aside>
+        </section>
+        <footer class="d-flex justify-content-between text-secondary small py-4"><span>Checks are scheduled in UTC</span><span>Powered by SMS Proxy Hub</span></footer>
+    </main>
+</body>
+</html>

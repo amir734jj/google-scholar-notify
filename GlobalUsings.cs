@@ -1,0 +1,1 @@
+global using Monitor = ScholarNotify.Models.Monitor;
