@@ -18,7 +18,6 @@ public sealed class MonitorConfiguration : IEntityTypeConfiguration<Monitor>
         entity.Property(item => item.UtcOffsetHours).HasColumnName("utc_offset_hours");
         entity.Property(item => item.NotificationStartHour).HasColumnName("notification_start_hour");
         entity.Property(item => item.NotificationEndHour).HasColumnName("notification_end_hour");
-        entity.Property(item => item.Enabled).HasColumnName("enabled");
         entity.Property(item => item.LastCheckedAt).HasColumnName("last_checked_at");
         entity.Property(item => item.NextCheckAt).HasColumnName("next_check_at");
         entity.Property(item => item.LastError).HasColumnName("last_error").HasMaxLength(4000);

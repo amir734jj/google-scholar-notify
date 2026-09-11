@@ -58,11 +58,11 @@
                 <div class="card-header py-3"><h2 class="h5 mb-1">Monitored profiles</h2><p class="text-secondary small mb-0">Current citation totals and check schedule</p></div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light"><tr><th>Researcher</th><th>Status</th><th>Citations</th><th>Next check</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+                        <thead class="table-light"><tr><th>Researcher</th><th>Citations</th><th>Next check</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
                         <tbody>
                         @if (Model.Monitors.Count == 0)
                         {
-                            <tr><td colspan="5" class="text-center text-secondary py-5">No profiles are being monitored.</td></tr>
+                            <tr><td colspan="4" class="text-center text-secondary py-5">No profiles are being monitored.</td></tr>
                         }
                         else
                         {
@@ -70,17 +70,15 @@
                             {
                                 <tr>
                                     <td><strong class="d-block">@item.ScholarName</strong><small class="text-secondary d-block">@item.PhoneNumber</small><small class="text-secondary">@($"{item.NotificationStartHour:00}:00-{item.NotificationEndHour:00}:00 UTC{item.UtcOffsetHours:+00;-00;+00}")</small></td>
-                                    <td><span class="badge @(item.Enabled ? "text-bg-success" : "text-bg-secondary")">@(item.Enabled ? "Active" : "Paused")</span></td>
                                     <td class="fw-semibold">@item.CurrentCitations.ToString("N0")</td>
-                                    <td class="text-secondary">@(item.Enabled ? DashboardViewModel.RelativeTime(item.NextCheckAt) : "Paused")</td>
+                                    <td class="text-secondary">@DashboardViewModel.RelativeTime(item.NextCheckAt)</td>
                                     <td><div class="d-flex flex-wrap justify-content-end gap-1">
                                         <form method="post" asp-controller="Home" asp-action="Check"><input type="hidden" name="id" value="@item.Id" /><button class="btn btn-sm btn-outline-primary" title="Check @item.ScholarName now">Check</button></form>
-                                        <form method="post" asp-controller="Home" asp-action="Toggle"><input type="hidden" name="id" value="@item.Id" /><input type="hidden" name="enabled" value="@(!item.Enabled)" /><button class="btn btn-sm btn-outline-secondary" title="@(item.Enabled ? "Pause" : "Resume") monitor">@(item.Enabled ? "Pause" : "Resume")</button></form>
                                         <details><summary class="btn btn-sm btn-outline-secondary">Edit phone</summary><form method="post" asp-controller="Home" asp-action="UpdatePhone" class="border rounded p-2 mt-2"><input type="hidden" name="id" value="@item.Id" /><label class="form-label small" for="phone-@item.Id">SMS destination</label><input class="form-control form-control-sm mb-2" id="phone-@item.Id" name="phoneNumber" value="@item.PhoneNumber" type="tel" autocomplete="tel" required /><button class="btn btn-sm btn-primary w-100" type="submit">Save</button></form></details>
                                         <details><summary class="btn btn-sm btn-outline-danger">Delete</summary><div class="border rounded p-2 mt-2"><small class="d-block mb-2">Delete this monitor?</small><form method="post" asp-controller="Home" asp-action="Delete"><input type="hidden" name="id" value="@item.Id" /><button class="btn btn-sm btn-danger w-100">Confirm</button></form></div></details>
                                     </div></td>
                                 </tr>
-                                @if (!string.IsNullOrWhiteSpace(item.LastError)) { <tr class="table-danger"><td colspan="5" class="small">@item.LastError</td></tr> }
+                                @if (!string.IsNullOrWhiteSpace(item.LastError)) { <tr class="table-danger"><td colspan="4" class="small">@item.LastError</td></tr> }
                             }
                         }
                         </tbody>

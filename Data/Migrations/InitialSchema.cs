@@ -21,7 +21,6 @@ public sealed class InitialSchema : Migration
                 .WithColumn("utc_offset_hours").AsInt32().NotNullable().WithDefaultValue(-6)
                 .WithColumn("notification_start_hour").AsInt32().NotNullable().WithDefaultValue(9)
                 .WithColumn("notification_end_hour").AsInt32().NotNullable().WithDefaultValue(17)
-                .WithColumn("enabled").AsBoolean().NotNullable()
                 .WithColumn("last_checked_at").AsDateTimeOffset().Nullable()
                 .WithColumn("next_check_at").AsDateTimeOffset().NotNullable()
                 .WithColumn("last_error").AsString(4000).Nullable()

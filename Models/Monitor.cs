@@ -11,7 +11,6 @@ public sealed class Monitor
     public int UtcOffsetHours { get; set; } = -6;
     public int NotificationStartHour { get; set; } = 9;
     public int NotificationEndHour { get; set; } = 17;
-    public bool Enabled { get; set; }
     public DateTimeOffset? LastCheckedAt { get; set; }
     public DateTimeOffset NextCheckAt { get; set; }
     public string? LastError { get; set; }

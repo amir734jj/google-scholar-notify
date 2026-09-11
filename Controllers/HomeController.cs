@@ -51,7 +51,6 @@ public sealed class HomeController(
                 UtcOffsetHours = input.UtcOffsetHours,
                 NotificationStartHour = input.NotificationStartHour,
                 NotificationEndHour = input.NotificationEndHour,
-                Enabled = true,
                 LastCheckedAt = now,
                 NextCheckAt = now,
                 CreatedAt = now
@@ -122,26 +121,6 @@ public sealed class HomeController(
             SetFlash(exception.Message, "error");
         }
 
-        return RedirectToAction(nameof(Index));
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Toggle(long id, bool enabled)
-    {
-        try
-        {
-            if (await monitors.Update(id, entity => entity.Enabled = enabled) is null)
-            {
-                throw new InvalidOperationException("Monitor not found.");
-            }
-
-            SetFlash(enabled ? "Monitoring resumed." : "Monitoring paused.", "success");
-        }
-        catch (Exception exception)
-        {
-            SetFlash(exception.Message, "error");
-        }
         return RedirectToAction(nameof(Index));
     }
 
