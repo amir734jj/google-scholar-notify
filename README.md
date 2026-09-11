@@ -19,6 +19,8 @@ dotnet run
 
 Open `http://localhost:3000`, or the URL printed by ASP.NET.
 
+Register `https://your-citewatch-host/api/sms-callback` as a webhook in SMS Proxy Hub to record SMS status and replies.
+
 ## How it works
 
 - Adding a profile stores its current citation count as the baseline. It does not send an initial SMS.

@@ -38,7 +38,13 @@ public sealed class SmsProxyHubService(
             Guid.TryParse(ConnectionId, out var connectionId) ? connectionId : null,
             [normalizedPhoneNumber],
             message,
-            JsonConvert.SerializeObject(new { source = "google-scholar-notify", monitorId, citations }));
+            JsonConvert.SerializeObject(new
+            {
+                source = "google-scholar-notify",
+                monitorId,
+                previousCitations,
+                citations
+            }));
 
         var httpClient = httpClientFactory.CreateClient("SmsProxyHub");
         httpClient.BaseAddress = new Uri(BaseUrl!.TrimEnd('/'));
