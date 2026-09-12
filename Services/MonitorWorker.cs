@@ -16,8 +16,7 @@ public sealed class MonitorWorker(
             await using var monitors = await monitorCreator.CreateAsync();
             var now = DateTimeOffset.UtcNow;
             var due = (await monitors.NoTracking().GetAll())
-                .Where(item => item.NextCheckAt <= now
-                    && NotificationWindow.IsOpen(item, now))
+                .Where(item => item.NextCheckAt <= now)
                 .OrderBy(item => item.NextCheckAt)
                 .Take(10);
             foreach (var id in due.Select(item => item.Id))

@@ -7,6 +7,7 @@ RUN dotnet publish -c Release -o /app/publish --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine
 WORKDIR /app
+RUN apk add --no-cache krb5-libs
 COPY --from=build /app/publish .
 ENV PORT=3000
 EXPOSE 3000
