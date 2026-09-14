@@ -71,7 +71,7 @@
                                 <tr>
                                     <td><strong class="d-block">@item.ScholarName</strong><small class="text-secondary d-block">@item.PhoneNumber</small><small class="text-secondary">@($"{item.NotificationStartHour:00}:00-{item.NotificationEndHour:00}:00 UTC{item.UtcOffsetHours:+00;-00;+00}")</small></td>
                                     <td class="fw-semibold">@item.CurrentCitations.ToString("N0")</td>
-                                    <td class="text-secondary">@DashboardViewModel.RelativeTime(item.NextCheckAt)</td>
+                                    <td class="text-secondary" title="@item.NextCheckAt.ToString("u")">@DashboardViewModel.RelativeTime(item.NextCheckAt)</td>
                                     <td><div class="d-flex flex-wrap justify-content-end gap-1">
                                         <form method="post" asp-controller="Home" asp-action="Check"><input type="hidden" name="id" value="@item.Id" /><button class="btn btn-sm btn-outline-primary" title="Check @item.ScholarName now">Check</button></form>
                                         <form method="post" asp-controller="Home" asp-action="SendTestSms"><input type="hidden" name="id" value="@item.Id" /><button class="btn btn-sm btn-outline-secondary" type="submit" title="Send a test SMS to @item.PhoneNumber" disabled="@(!Model.SmsConfigured)">Test SMS</button></form>
@@ -103,14 +103,36 @@
                         var monitor = Model.Monitors.FirstOrDefault(candidate => candidate.Id == item.MonitorId);
                         var marker = item.Kind == "error" ? "ERR" : item.Kind == "notification" ? "SMS" : "OK";
                         var markerClass = item.Kind == "error" ? "error" : item.Kind == "notification" ? "sms" : string.Empty;
-                        <article class="list-group-item d-flex gap-3 py-3"><span class="badge @(markerClass == "error" ? "text-bg-danger" : markerClass == "sms" ? "text-bg-primary" : "text-bg-success") align-self-start">@marker</span><div><p class="mb-1">@item.Message</p><small class="text-secondary">@(monitor?.ScholarName ?? $"Profile {item.MonitorId}") / @DashboardViewModel.RelativeTime(item.CreatedAt)</small></div></article>
+                        var messagePrefix = item.Message;
+                        var messageTimestamp = default(DateTimeOffset);
+                        var messageSuffix = string.Empty;
+                        var hasTimestamp = item.Kind == "deferred" && DashboardViewModel.TrySplitTimestamp(item.Message, out messagePrefix, out messageTimestamp, out messageSuffix);
+                        <article class="list-group-item d-flex gap-3 py-3">
+                            <span class="badge @(markerClass == "error" ? "text-bg-danger" : markerClass == "sms" ? "text-bg-primary" : "text-bg-success") align-self-start">@marker</span>
+                            <div>
+                                @if (hasTimestamp)
+                                {
+                                    <p class="mb-1">@messagePrefix<time class="local-date-time" datetime="@messageTimestamp.ToString("O")">@messageTimestamp.ToString("u")</time>@messageSuffix</p>
+                                }
+                                else
+                                {
+                                    <p class="mb-1">@item.Message</p>
+                                }
+                                <small class="text-secondary">@(monitor?.ScholarName ?? $"Profile {item.MonitorId}") / @DashboardViewModel.RelativeTime(item.CreatedAt)</small>
+                            </div>
+                        </article>
                     }
                 }
                 </div>
                 </div>
             </aside>
         </section>
-        <footer class="text-secondary small py-4">Checks are scheduled in UTC</footer>
+        <footer class="text-secondary small py-4">Notification windows use each profile's configured UTC offset.</footer>
     </main>
+    <script>
+        document.querySelectorAll("time.local-date-time").forEach(element => {
+            element.textContent = new Date(element.dateTime).toLocaleString();
+        });
+    </script>
 </body>
 </html>
